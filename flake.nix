@@ -10,6 +10,7 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
+        inherit (nixpkgs) lib;
       in {
         devShells.default = with pkgs; mkShellNoCC {
           packages = [
@@ -17,8 +18,14 @@
               openai
               self.packages.${system}.perplexityai
             ]))
-            (python312Packages.toPythonApplication self.packages.${system}.perplexity-webui-server)
           ];
+        };
+        apps = rec {
+          perplexity-webui-server = {
+            type = "app";
+            program = lib.getExe' (pkgs.python312Packages.toPythonApplication self.packages.${system}.perplexity-webui-server) "perplexity_webui_server";
+          };
+          default = perplexity-webui-server;
         };
         packages = rec {
            langchain-openai-api-bridge = with pkgs.python312Packages; buildPythonPackage rec {
